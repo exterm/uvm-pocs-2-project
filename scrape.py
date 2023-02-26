@@ -2,7 +2,6 @@
 # Source: http://chakoteya.net/DS9/{episode}.htm (starting at 401)
 # Output in CSV format. Columns: Episode, Season, Title, Location, Speaker, Context, Text
 
-# TODO: Add a progress bar
 # TODO: Parse the location of the speaker
 #   Example: LOCUTUS [on viewscreen]: Resistance is futile.
 
