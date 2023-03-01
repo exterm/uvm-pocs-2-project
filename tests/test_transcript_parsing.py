@@ -1,8 +1,8 @@
 from lib import transcript_parsing
 
 def test_parse_speaker_line():
-    assert transcript_parsing.parse_speaker_line('O\'Brien 2 [OC]: (chuckles) I should have known.') == {
-        'speaker': 'O\'Brien 2',
+    assert transcript_parsing.parse_speaker_line('Chief O\'Brien [OC]: (chuckles) I should have known.') == {
+        'speaker': 'Chief O\'Brien',
         'context': 'chuckles',
         'text': 'I should have known.'
     }
@@ -14,7 +14,7 @@ def test_parse_speaker_line_with_no_context():
         'text': 'I should have known.'
     }
 
-def test_parse_speaker_line_with_no_oc():
+def test_parse_speaker_line_with_no_speaker_location():
     assert transcript_parsing.parse_speaker_line('ODO: I should have known.') == {
         'speaker': 'Odo',
         'context': None,
