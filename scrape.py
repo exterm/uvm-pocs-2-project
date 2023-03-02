@@ -24,7 +24,7 @@ LAST_EPISODE_PER_SEASON = {
     7: 575
 }
 
-with open('ds9.csv', 'w') as csvfile:
+with open('st-ds9-transcripts.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(['Episode', 'Season', 'Title', 'Location', 'Speaker', 'Context', 'Text'])
 
