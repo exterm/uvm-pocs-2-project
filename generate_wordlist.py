@@ -5,30 +5,29 @@ import csv
 
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
-import argparse
-
-parser = argparse.ArgumentParser(
-    description='Convert a CSV of Star Trek: Deep Space Nine transcripts to a list of tokens.'
-)
-
-parser.add_argument('input', type=str, help='Input CSV file')
-
-args = parser.parse_args()
 
 # read in the CSV
-with open(args.input, 'r') as csvfile:
+with open('st-ds9-transcripts.csv', 'r') as csvfile:
     reader = csv.DictReader(csvfile)
     data = list(reader)
 
-tokens = []
+def write_wordlist(data, filename):
+    tokens = []
 
-# tokenize each line
-for line in tqdm(data):
-    tokens += [t.lower() for t in word_tokenize(line['Text'])]
+    # tokenize each line
+    for line in tqdm(data):
+        tokens += [t.lower() for t in word_tokenize(line['Text'])]
 
-# write to CSV file
-with open('wordlist.csv', 'w') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    # write to CSV file
+    with open(filename, 'w') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-    for token in tokens:
-        writer.writerow([token])
+        for token in tokens:
+            writer.writerow([token])
+
+write_wordlist(data, 'wordlist_full.csv')
+
+# filter down to just the first episode
+episode = [d for d in data if d['Episode'] == '401']
+
+write_wordlist(episode, 'wordlist_episode_401.csv')
