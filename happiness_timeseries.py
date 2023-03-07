@@ -11,7 +11,7 @@ from lib import happiness
 
 def set_axes(axes, last):
     axes.yaxis.set_major_formatter('{x:.2f}')
-    axes.set_ylabel("Happiness score")
+    axes.set_ylabel("Avg. happiness")
     # only label the x-axis on the bottom plot
     if last:
         axes.set_xlabel("Time (in words elapsed)")
