@@ -1,5 +1,5 @@
-# Scrape the transcripts of all episodes of Star Trek: Deep Space Nine
-# Source: http://chakoteya.net/DS9/{episode}.htm (starting at 401)
+# Scrape the transcripts of all episodes of a series from chakoteya.net
+# Source: http://chakoteya.net/{series}/{episode}.htm (starting at 401)
 # Output in CSV format. Columns: Episode, Season, Title, Location, Speaker, Context, Text
 
 # TODO: Parse the location of the speaker
@@ -7,29 +7,73 @@
 
 import csv
 import requests
+import argparse
 
 from tqdm import tqdm
 
 from lib import transcript_parsing
 
-FIRST_EPISODE = 401
-LAST_EPISODE = 575
-LAST_EPISODE_PER_SEASON = {
-    1: 420,
-    2: 446,
-    3: 472,
-    4: 498,
-    5: 524,
-    6: 550,
-    7: 575
+SERIES = {
+    'TNG': {
+        'URL path': 'NextGen',
+        'first episode': 101,
+        'last episode': 277,
+        'last episode per season': {
+            1: 126,
+            2: 148,
+            3: 174,
+            4: 200,
+            5: 226,
+            6: 252,
+            7: 277
+        }
+    },
+    'DS9': {
+        'URL path': 'DS9',
+        'first episode': 401,
+        'last episode': 575,
+        'last episode per season': {
+            1: 420,
+            2: 446,
+            3: 472,
+            4: 498,
+            5: 524,
+            6: 550,
+            7: 575
+        }
+    },
+    'TOS': {
+        'URL path': 'StarTrek',
+        'first episode': 1,
+        'last episode': 79,
+        'last episode per season': {
+            1: 29,
+            2: 55,
+            3: 79
+        }
+    },
 }
 
-with open('st-ds9-transcripts.csv', 'w') as csvfile:
+# parse command line arguments
+parser = argparse.ArgumentParser(description='Scrape the transcripts of all episodes of certain series')
+
+parser.add_argument('series', type=str, help=f'The series to scrape. Options: {", ".join(SERIES.keys())}')
+
+args = parser.parse_args()
+
+# make sure the series is valid
+if args.series not in SERIES:
+    print(f'Invalid series: {args.series}')
+    exit()
+
+config = SERIES[args.series]
+
+with open(f'st-{args.series.lower()}-transcripts.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(['Episode', 'Season', 'Title', 'Location', 'Speaker', 'Context', 'Text'])
 
-    for episode_number in tqdm(range(FIRST_EPISODE, LAST_EPISODE + 1)):
-        url = 'http://chakoteya.net/DS9/{0}.htm'.format(episode_number)
+    for episode_number in tqdm(range(config['first episode'], config['last episode'] + 1)):
+        url = 'http://chakoteya.net/{0}/{1}.htm'.format(config['URL path'], episode_number)
 
         r = requests.get(url)
 
@@ -39,13 +83,16 @@ with open('st-ds9-transcripts.csv', 'w') as csvfile:
             continue
 
         # Get the season number
-        for s in LAST_EPISODE_PER_SEASON:
-            if episode_number <= LAST_EPISODE_PER_SEASON[s]:
+        for s in config['last episode per season']:
+            if episode_number <= config['last episode per season'][s]:
                 season = s
                 break
 
         # add episode content to CSV
         episode_transcript = transcript_parsing.parse_episode(r.text)
+        if episode_transcript is None:
+            print('Episode {0} could not be parsed'.format(episode_number))
+            continue
         for line in episode_transcript:
             writer.writerow([
                 episode_number,
