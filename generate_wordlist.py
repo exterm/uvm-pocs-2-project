@@ -2,13 +2,23 @@
 # Where each row in the output CSV contains a single word or punctuation.
 
 import csv
+import argparse
 
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
 import pandas as pd
 
+parser = argparse.ArgumentParser(
+    description='Generate a wordlist from a transcript CSV file.'
+)
+
+parser.add_argument('input', type=str, help='Input CSV file')
+parser.add_argument('--output-dir', type=str, default=".", help='Output directory')
+
+args = parser.parse_args()
+
 # read in the CSV
-with open('st-ds9-transcripts.csv', 'r') as csvfile:
+with open(args.input, 'r') as csvfile:
     reader = csv.DictReader(csvfile)
     data = list(reader)
 
@@ -36,7 +46,7 @@ def write_wordlist(data, filename):
     wordlist = pd.DataFrame(wordlist)
 
     # write to CSV file
-    wordlist.to_csv(filename, index=False)
+    wordlist.to_csv(args.output_dir + "/" + filename, index=False)
 
 def write_episode(episode_number):
     episode = [d for d in data if d['Episode'] == episode_number]
@@ -47,6 +57,9 @@ def write_speaker(speaker):
     write_wordlist(speaker_data, f'wordlist_{speaker}.csv')
 
 write_wordlist(data, 'wordlist_full.csv')
+
+if args.input != 'st-ds9-transcripts.csv':
+    exit()
 
 write_episode(401)
 
