@@ -45,7 +45,15 @@ parser.add_argument('--profile', action='store_true', help='Profile the script')
 # optional argument: iterate over a range of lens values
 parser.add_argument('--lenses', action='store_true', help='Iterate over a range of lens values')
 
+# add options to speciy exact window size and lens - incompatible with --lenses
+parser.add_argument('--window-size', type=int, default=None, help='Window size to use')
+parser.add_argument('--lens', type=float, default=None, help='Lens value to use')
+
 args = parser.parse_args()
+
+if args.lenses and (args.window_size is not None or args.lens is not None):
+    print("Error: --lenses and --window-size or --lens are incompatible")
+    exit(1)
 
 WINDOW_EXPONENTS = [1, 1.5, 2, 2.5, 3, 3.5, 4]
 # WINDOW_EXPONENTS = [1, 1.5, 2]
@@ -58,7 +66,10 @@ happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness Sc
 happiness_scores = happiness_scores.set_index('Word')
 happiness_scores = happiness_scores.to_dict()['Happiness Score']
 
-window_sizes = [round(10 ** z) for z in WINDOW_EXPONENTS]
+if args.window_size is not None:
+    window_sizes = [args.window_size]
+else:
+    window_sizes = [round(10 ** z) for z in WINDOW_EXPONENTS]
 
 print("read wordlist")
 wordlist_full = pd.read_csv(args.wordlist)
@@ -109,19 +120,21 @@ if args.lenses:
         set_axes(axes[i], last_plot)
         mark_seasons(axes[i], season_indices, last_plot)
 else:
+    lens = args.lens or 0
     for i, window_size in enumerate(window_sizes):
+        ax = axes[i] if num_plots > 1 else axes
         print(f"window size: {window_size}")
 
-        timeseries = happiness.timeseries_fast(window_size, wordlist, happiness_scores)
+        timeseries = happiness.timeseries_fast(window_size, wordlist, happiness_scores, lens)
 
         timeseries = shift_timeseries(timeseries, window_size // 2)
 
-        axes[i].plot(timeseries)
-        axes[i].set_title(f"Window size: {window_size}")
+        ax.plot(timeseries)
+        ax.set_title(f"Window size: {window_size}, lens: {lens}")
 
         last_plot = i == len(window_sizes) - 1
-        set_axes(axes[i], last_plot)
-        mark_seasons(axes[i], season_indices, last_plot)
+        set_axes(ax, last_plot)
+        mark_seasons(ax, season_indices, last_plot)
 
 plt.show()
 
