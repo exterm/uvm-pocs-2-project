@@ -52,13 +52,16 @@ def parse_body(contents):
 def parse_episode(text):
     transcript = []
 
-    soup = BeautifulSoup(text, 'html.parser').body
+    soup = BeautifulSoup(text, 'html5lib').body
+
+    if not soup:
+        return None
 
     # Get the title of the episode
-    title = soup.select('body > p:nth-child(2) > font:nth-child(1)')[0].text
+    title = soup.select('body font > b')[0].text
     title = re.sub(r'\s+', ' ', title).strip()
 
-    transcript_body = soup.select('body > div:nth-child(3)')[0]
+    transcript_body = soup.select('body > div')[0]
 
     contents = str(transcript_body.contents[1])
     lines = parse_body(contents)
@@ -73,7 +76,7 @@ def parse_episode(text):
 
         # new scene?
         if line.startswith('['):
-            location = line[1:-1]
+            location = line[1:-1].lower()
             continue
 
         # Parse pure context line
