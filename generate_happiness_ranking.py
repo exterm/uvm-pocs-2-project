@@ -10,7 +10,6 @@ from scipy.stats import rankdata
 
 from lib import happiness
 
-GROUP_COUNT = 50
 LENS = 1
 
 parser = argparse.ArgumentParser(
@@ -20,7 +19,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('wordlist', type=str, help='Input CSV file')
 parser.add_argument('column', type=str, help='Column to use for grouping')
 parser.add_argument('--lens', type=float, default=LENS, help='Lens value to use for shifterator')
-parser.add_argument('--group-count', type=int, default=GROUP_COUNT, help='Number of groups to keep')
+parser.add_argument('--group-count', type=int, default=None, help='Number of groups to keep')
 
 args = parser.parse_args()
 
@@ -30,11 +29,14 @@ happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness Sc
 happiness_scores = happiness_scores.set_index('Word')
 happiness_scores = happiness_scores.to_dict()['Happiness Score']
 
-# group by column
 grouped = wordlist.groupby(args.column)
 
+# sort largest groups first
+grouped = sorted(grouped, key=lambda x: len(x[1]), reverse=True)
+
 # keep only the largest groups
-grouped = sorted(grouped, key=lambda x: len(x[1]), reverse=True)[:args.group_count]
+if args.group_count is not None:
+    grouped = grouped[:args.group_count]
 
 print("Most tokens:")
 for name, group in grouped[:10]:
@@ -45,6 +47,7 @@ plt.figure()
 plt.bar([name for name, group in grouped], [len(group) for name, group in grouped])
 plt.xticks(rotation=90)
 plt.title(f"Number of tokens per {args.column}")
+plt.subplots_adjust(bottom=0.25)
 plt.draw()
 
 # compute average happiness score for each group
@@ -71,6 +74,7 @@ plt.figure()
 plt.bar([k for k, v in averages.items()], [v for k, v in averages.items()])
 plt.xticks(rotation=90)
 plt.title(f"Happiness score per {args.column}")
+plt.subplots_adjust(bottom=0.25)
 plt.draw()
 
 
