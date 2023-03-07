@@ -3,8 +3,15 @@ from collections import Counter
 from tqdm import tqdm
 
 # the average happiness of a text is the sum of the happiness of each word times the relative frequency of that word
-def score_text(words, scores):
+def score_text(words, scores, lens=0):
     word_counts = Counter(words)
+
+    # filter out words that are within [average - lens, average + lens] of the average
+    average = 5
+    filter = lambda x: None if x is not None and x >= average - lens and x <= average + lens else x
+    scores = {k: v for k, v in scores.items() if filter(v) is not None}
+
+    # compute the average happiness of the text
     scorable_types = [word for word in word_counts if word in scores]
     scorable_tokens = [word for word in words if word in scores]
     return sum([scores[word] * (word_counts[word] / len(scorable_tokens)) for word in scorable_types])
