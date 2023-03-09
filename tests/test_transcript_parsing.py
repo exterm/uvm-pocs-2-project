@@ -65,28 +65,28 @@ def test_parse_episode():
         },
         {
             'title': 'Emissary',
-            'location': 'Saratoga - Bridge',
+            'location': 'saratoga - bridge',
             'speaker': 'Locutus',
             'context': None,
             'text': 'Resistance is futile. You will disarm your weapons and escort us to sector zero zero one. If you attempt to intervene, we will destroy you.'
         },
         {
             'title': 'Emissary',
-            'location': 'Saratoga - Bridge',
+            'location': 'saratoga - bridge',
             'speaker': 'Captain',
             'context': 'a Vulcan',
             'text': 'Red alert. Load all torpedo bays. Ready phasers. Move us to position alpha, Ensign.'
         },
         {
             'title': 'Emissary',
-            'location': 'Saratoga - Bridge',
+            'location': 'saratoga - bridge',
             'speaker': None,
             'context': 'The space battle begins',
             'text': None
         },
         {
             'title': 'Emissary',
-            'location': 'Saratoga - Bridge',
+            'location': 'saratoga - bridge',
             'speaker': 'Ops Officer',
             'context': 'woman',
             'text': "They've locked on."
