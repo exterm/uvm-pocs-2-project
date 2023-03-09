@@ -987,15 +987,17 @@ category = "main"
 optional = false
 python-versions = "~=3.6"
 files = []
-develop = true
+develop = false
 
 [package.dependencies]
 matplotlib = "*"
 numpy = "*"
 
 [package.source]
-type = "directory"
-url = "../../src/github.com/exterm/shifterator"
+type = "git"
+url = "https://github.com/exterm/shifterator.git"
+reference = "master"
+resolved_reference = "4d9e37f3719668c53d6678c4571583beb7c0b0b7"
 
 [[package]]
 name = "six"
@@ -1086,4 +1088,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12" # scipy wants us to use python <3.12
-content-hash = "a040aeef3a971097c47330128582250482680f09ba8b2518bcfc4b4d44054929"
+content-hash = "9b66f3ac1d7d7ca98182a1aae713cb96ced77b5792e6327382c40335a2d52cc5"

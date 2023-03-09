@@ -16,9 +16,9 @@ tqdm = "^4.64.1"
 nltk = "^3.8.1"
 matplotlib = "^3.7.0"
 pandas = "^1.5.3"
-shifterator = {path = "/home/philip/src/github.com/exterm/shifterator", develop = true}
 scipy = "^1.10.1"
 html5lib = "^1.1"
+shifterator = {git = "https://github.com/exterm/shifterator.git", rev = "master"}
 
 
 [build-system]
