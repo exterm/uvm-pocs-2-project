@@ -28,13 +28,13 @@ def filter_kernel(word_scores, lens):
     filter = lambda x: None if x is not None and x >= average - lens and x <= average + lens else x
     return list(map(filter, word_scores))
 
-def timeseries_fast(window_size, words: list[str], scores: dict[str, float], lens: float = 0.0):
+def timeseries_fast(window_size, words: list[str], scores: dict[str, float], lens: float = 0.0, progress_bar: bool = True):
     word_scores = [scores.get(word) for word in words]
 
     word_scores = filter_kernel(word_scores, lens)
 
     timeseries = []
-    for i in tqdm(range(len(word_scores) - window_size + 1)):
+    for i in conditional_tqdm(range(len(word_scores) - window_size + 1), progress_bar):
         window = [x for x in word_scores[i:i + window_size] if x is not None]
         if len(window) == 0:
             timeseries.append(None)
@@ -42,3 +42,9 @@ def timeseries_fast(window_size, words: list[str], scores: dict[str, float], len
             timeseries.append(sum(window) / len(window))
 
     return timeseries
+
+def conditional_tqdm(iterable, condition):
+    if condition:
+        return tqdm(iterable)
+    else:
+        return iterable
