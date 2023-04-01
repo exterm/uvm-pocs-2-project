@@ -20,6 +20,7 @@ parser.add_argument('wordlist', type=str, help='Input CSV file')
 parser.add_argument('column', type=str, help='Column to use for grouping')
 parser.add_argument('--lens', type=float, default=LENS, help='Lens value to use for shifterator')
 parser.add_argument('--group-count', type=int, default=None, help='Number of groups to keep')
+parser.add_argument('--output-prefix', '--op', type=str, help='Output file name prefix')
 
 args = parser.parse_args()
 
@@ -50,6 +51,9 @@ plt.title(f"Number of tokens per {args.column}")
 plt.subplots_adjust(bottom=0.25)
 plt.draw()
 
+if args.output_prefix is not None:
+    plt.savefig(f"output/{args.output_prefix}_group_sizes.pdf", dpi=300)
+
 # compute average happiness score for each group
 averages = {}
 for name, group in grouped:
@@ -68,7 +72,7 @@ highest.sort(reverse=True, key=lambda x: x[1])
 for k, v in highest:
     print(f"{v:.2f}", k)
 
-# plot: spekaer on the x axis, happiness score on the y axis
+# plot: speaker on the x axis, happiness score on the y axis
 # sorted by happiness score
 plt.figure()
 plt.bar([k for k, v in averages.items()], [v for k, v in averages.items()])
@@ -77,6 +81,8 @@ plt.title(f"Happiness score per {args.column}")
 plt.subplots_adjust(bottom=0.25)
 plt.draw()
 
+if args.output_prefix is not None:
+    plt.savefig(f"output/{args.output_prefix}_happiness_scores.pdf", dpi=300)
 
 print("\nUnhappiest:")
 for k, v in list(averages_without_zero.items())[:10]:
@@ -95,4 +101,5 @@ plt.title(f"Happiness score distribution for {args.column}")
 plt.xlabel("Rank")
 plt.ylabel("Happiness score")
 
-plt.show()
+if args.output_prefix is None:
+    plt.show()
