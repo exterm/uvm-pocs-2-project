@@ -12,6 +12,9 @@ from tqdm import tqdm
 
 from lib import happiness
 
+def shift_timeseries(timeseries, shift):
+    return [None] * shift + timeseries
+
 parser = argparse.ArgumentParser(
     description='Plot a combination of timeseries for all episodes in a wordlist.'
 )
@@ -21,6 +24,7 @@ parser.add_argument('wordlist', type=str, help='Input CSV file')
 # add options to speciy exact window size and lens - incompatible with --lenses
 parser.add_argument('window_size', type=int, help='Window size to use')
 parser.add_argument('lens', type=float, help='Lens value to use')
+parser.add_argument('--output', '-o', type=str, help='Output file name')
 
 args = parser.parse_args()
 
@@ -63,6 +67,10 @@ for timeseries in episode_timeseries:
         [timeseries[i] for i in np.linspace(0, len(timeseries) - 1, min_episode_length, dtype=int)]
     )
 
+# shift each timeseries to the right by the half of the window size
+# so that the timeseries is centered on the word
+scaled_timeseries = [shift_timeseries(timeseries, args.window_size // 2) for timeseries in scaled_timeseries]
+
 # plot all timeseries in a single plot with transparency
 for timeseries in scaled_timeseries:
     plt.plot(timeseries, color='black', alpha=0.02)
@@ -75,6 +83,14 @@ for i in range(min_episode_length):
 
 plt.plot(mean_timeseries, color='red')
 
+plt.xlabel("Word position")
+plt.ylabel("Happiness score")
+
+plt.ylim(3, 7)
+
 plt.title(f"Averaged timeseries, window size {args.window_size}, lens {args.lens}")
 
-plt.show()
+if args.output:
+    plt.savefig(args.output, dpi=300)
+else:
+    plt.show()
