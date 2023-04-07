@@ -72,7 +72,7 @@ averages = {k: v for k, v in sorted(averages.items(), key=lambda item: item[1], 
 # filter out zero values
 averages_without_zero = {k: v for k, v in averages.items() if v != 0}
 
-print("\Lowest scores:")
+print("\nLowest scores:")
 # sort by descending score, use two decimal places for the score
 lowest = list(averages_without_zero.items())[-10:]
 lowest.sort(key=lambda x: x[1])
@@ -90,7 +90,7 @@ plt.draw()
 if args.output_prefix is not None:
     plt.savefig(f"output/{args.output_prefix}_{column_string}_{metric_column_string}_scores.pdf", dpi=300)
 
-print("\Highest scores:")
+print("\nHighest scores:")
 for k, v in list(averages_without_zero.items())[:10]:
     print(f"{v:.2f}", k)
 
