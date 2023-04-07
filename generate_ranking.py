@@ -13,14 +13,15 @@ from lib import happiness
 LENS = 1
 
 parser = argparse.ArgumentParser(
-    description='Generate a ranking of a certain set by average happiness score.'
+    description='Generate a ranking of a certain set by average of some per-word score.'
 )
 
 parser.add_argument('wordlist', type=str, help='Input CSV file')
 parser.add_argument('column', type=str, help='Column to use for grouping')
-parser.add_argument('--lens', type=float, default=LENS, help='Lens value to use for shifterator')
+parser.add_argument('--lens', type=float, default=LENS, help='Lens value to use for scoring')
 parser.add_argument('--group-count', type=int, default=None, help='Number of groups to keep')
 parser.add_argument('--output-prefix', '--op', type=str, help='Output file name prefix')
+parser.add_argument('--no-show', action='store_true', help='Do not show the plots')
 
 args = parser.parse_args()
 
@@ -93,6 +94,10 @@ for k, v in list(averages_without_zero.items())[:10]:
 
 # plt.show()
 
+print("\nAverages:")
+print(f"Score: {sum(averages.values()) / len(averages):.2f}")
+print(f"Tokens per {args.column}: {sum([len(group) for name, group in grouped]) / len(grouped):.2f}")
+
 # plot zipf's law, use rankdata
 ranks = rankdata(list(averages.values()))
 plt.figure()
@@ -101,5 +106,5 @@ plt.title(f"Happiness score distribution for {args.column}")
 plt.xlabel("Rank")
 plt.ylabel("Happiness score")
 
-if args.output_prefix is None:
+if (args.output_prefix is None) and (not args.no_show):
     plt.show()
