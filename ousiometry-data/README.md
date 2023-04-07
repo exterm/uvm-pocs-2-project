@@ -1,0 +1,1 @@
+This data is from https://gitlab.com/petersheridandodds/ousiometry/-/tree/a73dcff10b515eed284e56399d58b63d723a372d/data-general/ousiometer, which in turn is from Ousiometrics and Telegnomics (Dodds et al, 2021-2023).

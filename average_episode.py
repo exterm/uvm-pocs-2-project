@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-from lib import happiness
+from lib import scoring
 
 def shift_timeseries(timeseries, shift):
     return [None] * shift + timeseries
@@ -49,7 +49,7 @@ for episode in tqdm(episodes):
     episode_timeseries = []
     for i in range(args.num_buckets):
         bucket = episode_wordlist[i * bucket_size:(i + 1) * bucket_size]
-        score = happiness.score_text(bucket, happiness_scores, args.lens)
+        score = scoring.score_text(bucket, happiness_scores, args.lens)
         if score is None or score == 0:
             print(f"episode {episode} bucket {i} is empty")
         episode_timeseries.append(score)

@@ -1,6 +1,5 @@
-# read a wordlist file and compute average happiness score for each location, speaker, episode, etc.
+# read a wordlist file and compute average score for each location, speaker, episode, etc.
 
-import csv
 import argparse
 
 import pandas as pd
@@ -8,16 +7,20 @@ import matplotlib.pyplot as plt
 
 from scipy.stats import rankdata
 
-from lib import happiness
+from lib import scoring
 
-LENS = 1
+LENS = 0
 
 parser = argparse.ArgumentParser(
     description='Generate a ranking of a certain set by average of some per-word score.'
 )
 
+# Metrics can be happiness from Hedonometer.csv or different metrics from the ousiometry data
+
 parser.add_argument('wordlist', type=str, help='Input CSV file')
 parser.add_argument('column', type=str, help='Column to use for grouping')
+parser.add_argument('metric_file', type=str, help='File to read metric values from')
+parser.add_argument('metric_column', type=str, help='Column to use for metric values')
 parser.add_argument('--lens', type=float, default=LENS, help='Lens value to use for scoring')
 parser.add_argument('--group-count', type=int, default=None, help='Number of groups to keep')
 parser.add_argument('--output-prefix', '--op', type=str, help='Output file name prefix')
@@ -27,9 +30,9 @@ args = parser.parse_args()
 
 wordlist = pd.read_csv(args.wordlist)
 
-happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness Score'])
-happiness_scores = happiness_scores.set_index('Word')
-happiness_scores = happiness_scores.to_dict()['Happiness Score']
+scores = pd.read_csv(args.metric_file, usecols=['Word', args.metric_column], sep=None)
+scores = scores.set_index('Word')
+scores = scores.to_dict()[args.metric_column]
 
 grouped = wordlist.groupby(args.column)
 
@@ -52,47 +55,44 @@ plt.title(f"Number of tokens per {args.column}")
 plt.subplots_adjust(bottom=0.25)
 plt.draw()
 
-if args.output_prefix is not None:
-    plt.savefig(f"output/{args.output_prefix}_group_sizes.pdf", dpi=300)
+column_string = args.column.lower().replace(' ', '_')
+metric_column_string = args.metric_column.lower().replace(' ', '_')
 
-# compute average happiness score for each group
+if args.output_prefix is not None:
+    plt.savefig(f"output/{args.output_prefix}_{column_string}_tokens.pdf", dpi=300)
+
+# compute average score for each group
 averages = {}
 for name, group in grouped:
-    averages[name] = happiness.score_text(list(group['Token']), happiness_scores, lens=args.lens)
+    averages[name] = scoring.score_text(list(group['Token']), scores, lens=args.lens)
 
-# sort by average happiness score
-averages = {k: v for k, v in sorted(averages.items(), key=lambda item: item[1])}
+# sort by average score
+averages = {k: v for k, v in sorted(averages.items(), key=lambda item: item[1], reverse=True)}
 
 # filter out zero values
 averages_without_zero = {k: v for k, v in averages.items() if v != 0}
 
-print("\nHappiest:")
+print("\Lowest scores:")
 # sort by descending score, use two decimal places for the score
-highest = list(averages_without_zero.items())[-10:]
-highest.sort(reverse=True, key=lambda x: x[1])
-for k, v in highest:
+lowest = list(averages_without_zero.items())[-10:]
+lowest.sort(key=lambda x: x[1])
+for k, v in lowest:
     print(f"{v:.2f}", k)
 
-# plot: speaker on the x axis, happiness score on the y axis
-# sorted by happiness score
+# plot: speaker on the x axis, score on the y axis
+# sorted by score
 plt.figure()
 plt.bar([k for k, v in averages.items()], [v for k, v in averages.items()])
 plt.xticks(rotation=90)
-plt.title(f"Happiness score per {args.column}")
+plt.title(f"{args.metric_column} score per {args.column}")
 plt.subplots_adjust(bottom=0.25)
 plt.draw()
-
 if args.output_prefix is not None:
-    plt.savefig(f"output/{args.output_prefix}_happiness_scores.pdf", dpi=300)
+    plt.savefig(f"output/{args.output_prefix}_{column_string}_{metric_column_string}_scores.pdf", dpi=300)
 
-print("\nUnhappiest:")
+print("\Highest scores:")
 for k, v in list(averages_without_zero.items())[:10]:
     print(f"{v:.2f}", k)
-# # plot the distribution
-# plt.hist(averages.values(), bins=100)
-# plt.title(f"Happiness score distribution for {args.column}")
-
-# plt.show()
 
 print("\nAverages:")
 print(f"Score: {sum(averages.values()) / len(averages):.2f}")
@@ -102,9 +102,9 @@ print(f"Tokens per {args.column}: {sum([len(group) for name, group in grouped]) 
 ranks = rankdata(list(averages.values()))
 plt.figure()
 plt.plot(ranks, list(averages.values()))
-plt.title(f"Happiness score distribution for {args.column}")
+plt.title(f"{args.metric_column} distribution for {args.column}")
 plt.xlabel("Rank")
-plt.ylabel("Happiness score")
+plt.ylabel(args.metric_column)
 
 if (args.output_prefix is None) and (not args.no_show):
     plt.show()

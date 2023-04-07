@@ -8,7 +8,7 @@ import pandas as pd
 
 from scipy.stats import rankdata
 
-from lib import happiness
+from lib import scoring
 
 parser = argparse.ArgumentParser(
     description='Plot happiness vs. wordcount.'
@@ -33,7 +33,7 @@ grouped = sorted(grouped, key=lambda x: len(x[1]), reverse=True)
 # compute average happiness score for each group
 averages = {}
 for name, group in grouped:
-    averages[name] = happiness.score_text(list(group['Token']), happiness_scores)
+    averages[name] = scoring.score_text(list(group['Token']), happiness_scores)
 
 # render timeseries
 plt.figure()

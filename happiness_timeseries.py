@@ -9,7 +9,7 @@ from pstats import SortKey
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from lib import happiness
+from lib import scoring
 
 def set_axes(axes, last):
     axes.yaxis.set_major_formatter('{x:.2f}')
@@ -106,7 +106,7 @@ if args.lenses:
     for i, lens in enumerate(LENSES):
         print(f"lens: {lens}")
 
-        timeseries = happiness.timeseries_fast(
+        timeseries = scoring.timeseries_fast(
             PREFERRED_WINDOW_SIZE,
             wordlist,
             happiness_scores,
@@ -127,7 +127,7 @@ else:
         ax = axes[i] if num_plots > 1 else axes
         print(f"window size: {window_size}")
 
-        timeseries = happiness.timeseries_fast(window_size, wordlist, happiness_scores, lens)
+        timeseries = scoring.timeseries_fast(window_size, wordlist, happiness_scores, lens)
 
         timeseries = shift_timeseries(timeseries, window_size // 2)
 
