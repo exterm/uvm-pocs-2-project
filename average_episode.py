@@ -20,10 +20,8 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('wordlist', type=str, help='Input CSV file')
-
-# add options to speciy exact window size and lens - incompatible with --lenses
-parser.add_argument('window_size', type=int, help='Window size to use')
 parser.add_argument('lens', type=float, help='Lens value to use')
+parser.add_argument('num_buckets', type=int, help='Number of buckets to use')
 parser.add_argument('--output', '-o', type=str, help='Output file name')
 
 args = parser.parse_args()
@@ -40,55 +38,44 @@ episodes = wordlist_full['Episode'].to_list()
 episodes = list(set(episodes))
 
 print("calculate timeseries for each episode")
-episode_timeseries = []
+all_episode_timeseries = []
 for episode in tqdm(episodes):
     episode_wordlist = wordlist_full[wordlist_full['Episode'] == episode]
     episode_wordlist = episode_wordlist['Token'].to_list()
 
-    episode_timeseries.append(
-        happiness.timeseries_fast(args.window_size, episode_wordlist, happiness_scores, args.lens, progress_bar=False)
-    )
+    # create args.num_buckets buckets of equal size and calculate the happiness score for each bucket
+    # the happiness score is the average happiness score of all words in the bucket
+    bucket_size = len(episode_wordlist) // args.num_buckets
+    episode_timeseries = []
+    for i in range(args.num_buckets):
+        bucket = episode_wordlist[i * bucket_size:(i + 1) * bucket_size]
+        score = happiness.score_text(bucket, happiness_scores, args.lens)
+        if score is None or score == 0:
+            print(f"episode {episode} bucket {i} is empty")
+        episode_timeseries.append(score)
 
-min_episode_length = min([len(timeseries) for timeseries in episode_timeseries])
-print("min episode length:", min_episode_length, "words")
-
-# # eliminate the three shortest episodes
-# episode_timeseries = sorted(episode_timeseries, key=len, reverse=False)
-# episode_timeseries = episode_timeseries[5:]
-
-# min_episode_length = min([len(timeseries) for timeseries in episode_timeseries])
-# print("min episode length after removing shortest ones:", min_episode_length, "words")
-
-# scale each timeseries to the same length as the shortest episode
-# by sampling the timeseries min_episode_length times at regular intervals
-scaled_timeseries = []
-for timeseries in episode_timeseries:
-    scaled_timeseries.append(
-        [timeseries[i] for i in np.linspace(0, len(timeseries) - 1, min_episode_length, dtype=int)]
-    )
-
-# shift each timeseries to the right by the half of the window size
-# so that the timeseries is centered on the word
-scaled_timeseries = [shift_timeseries(timeseries, args.window_size // 2) for timeseries in scaled_timeseries]
+    all_episode_timeseries.append(episode_timeseries)
 
 # plot all timeseries in a single plot with transparency
-for timeseries in scaled_timeseries:
-    plt.plot(timeseries, color='black', alpha=0.02)
+for timeseries in all_episode_timeseries:
+    plt.plot(timeseries, color='black', alpha=0.03)
 
 # plot the mean and median timeseries - watch out for None values
 mean_timeseries = []
-for i in range(min_episode_length):
-    values = [timeseries[i] for timeseries in scaled_timeseries if timeseries[i] is not None]
+for i in range(args.num_buckets):
+    values = [timeseries[i] for timeseries in all_episode_timeseries if timeseries[i] is not None]
     mean_timeseries.append(np.mean(values))
 
 plt.plot(mean_timeseries, color='red')
 
-plt.xlabel("Word position")
-plt.ylabel("Happiness score")
+plt.xlabel("Percentage of tokens elapsed")
+plt.ylabel("Score")
 
-plt.ylim(3, 7)
+plt.xticks(np.arange(0, args.num_buckets + .01, args.num_buckets / 5), np.arange(0, 101, 20))
 
-plt.title(f"Averaged timeseries, window size {args.window_size}, lens {args.lens}")
+plt.ylim(4, 7)
+
+plt.title(f"Averaged timeseries, lens {args.lens}, buckets: {args.num_buckets}")
 
 if args.output:
     plt.savefig(args.output, dpi=300)
