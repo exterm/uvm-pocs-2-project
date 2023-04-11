@@ -27,9 +27,9 @@ parser.add_argument('--output', '-o', type=str, help='Output file name')
 args = parser.parse_args()
 
 print("read happiness scores")
-happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness Score'])
+happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness'])
 happiness_scores = happiness_scores.set_index('Word')
-happiness_scores = happiness_scores.to_dict()['Happiness Score']
+happiness_scores = happiness_scores.to_dict()['Happiness']
 
 print("read wordlist")
 wordlist_full = pd.read_csv(args.wordlist)

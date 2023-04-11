@@ -8,6 +8,7 @@ from pstats import SortKey
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from tqdm import tqdm
 
 from lib import scoring
 
@@ -33,9 +34,24 @@ def mark_seasons(axes, season_indices, last):
                 horizontalalignment='left'
             )
 
-def shift_timeseries(timeseries, shift):
-    return [None] * shift + timeseries
+def center_scored_timeseries(timeseries, window_size):
+    shift = window_size // 2
+    return [None] * shift + timeseries + [None] * shift
 
+def timeseries_by_episode(window_size: int, wordlist: pd.DataFrame, happiness_scores, lens: float):
+    # create a list of lists of tokens per episode
+    episodes = wordlist.groupby('Episode')['Token'].apply(list).tolist()
+
+    score_episode = \
+        lambda episode: scoring.timeseries_fast(window_size, episode, happiness_scores, lens, progress_bar=False)
+    # use scoring.timeseries_fast to generate a scored timeseries for each episode
+    timeseries = [score_episode(episode) for episode in tqdm(episodes)]
+
+    # add None values to the beginning and end of each timeseries to account for the window size
+    timeseries = [center_scored_timeseries(timeseries, window_size) for timeseries in timeseries]
+
+    # return concatenated timeseries
+    return [item for sublist in timeseries for item in sublist]
 
 parser = argparse.ArgumentParser(
     description='Generate a timeseries of happiness scores for a given wordlist.'
@@ -57,16 +73,16 @@ if args.lenses and (args.window_size is not None or args.lens is not None):
     print("Error: --lenses and --window-size or --lens are incompatible")
     exit(1)
 
-WINDOW_EXPONENTS = [1, 1.5, 2, 2.5, 3, 3.5, 4]
-# WINDOW_EXPONENTS = [1, 1.5, 2]
+WINDOW_EXPONENTS = [1, 1.5, 2, 2.5, 3, 3.5]
 LENSES = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
 # LENSES = [0, 0.5]
-PREFERRED_WINDOW_SIZE = 10000
+PREFERRED_WINDOW_SIZE = 316
+PREFERRED_LENS = 1.5
 
 print("read happiness scores")
-happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness Score'])
+happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness'])
 happiness_scores = happiness_scores.set_index('Word')
-happiness_scores = happiness_scores.to_dict()['Happiness Score']
+happiness_scores = happiness_scores.to_dict()['Happiness']
 
 if args.window_size is not None:
     window_sizes = [args.window_size]
@@ -106,14 +122,7 @@ if args.lenses:
     for i, lens in enumerate(LENSES):
         print(f"lens: {lens}")
 
-        timeseries = scoring.timeseries_fast(
-            PREFERRED_WINDOW_SIZE,
-            wordlist,
-            happiness_scores,
-            lens
-        )
-
-        timeseries = shift_timeseries(timeseries, PREFERRED_WINDOW_SIZE // 2)
+        timeseries = timeseries_by_episode(PREFERRED_WINDOW_SIZE, wordlist_full, happiness_scores, lens)
 
         axes[i].plot(timeseries)
         axes[i].set_title(f"lens: {lens}, window size: {PREFERRED_WINDOW_SIZE}")
@@ -122,14 +131,12 @@ if args.lenses:
         set_axes(axes[i], last_plot)
         mark_seasons(axes[i], season_indices, last_plot)
 else:
-    lens = args.lens or 0
+    lens = args.lens or PREFERRED_LENS
     for i, window_size in enumerate(window_sizes):
         ax = axes[i] if num_plots > 1 else axes
         print(f"window size: {window_size}")
 
-        timeseries = scoring.timeseries_fast(window_size, wordlist, happiness_scores, lens)
-
-        timeseries = shift_timeseries(timeseries, window_size // 2)
+        timeseries = timeseries_by_episode(window_size, wordlist_full, happiness_scores, lens)
 
         ax.plot(timeseries)
         ax.set_title(f"Window size: {window_size}, lens: {lens}")

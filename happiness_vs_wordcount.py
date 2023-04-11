@@ -21,9 +21,9 @@ args = parser.parse_args()
 
 wordlist = pd.read_csv(args.wordlist)
 
-happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness Score'])
+happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness'])
 happiness_scores = happiness_scores.set_index('Word')
-happiness_scores = happiness_scores.to_dict()['Happiness Score']
+happiness_scores = happiness_scores.to_dict()['Happiness']
 
 grouped = wordlist.groupby(args.column)
 
