@@ -29,7 +29,7 @@ def mark_seasons(axes, season_indices, last = 0) -> None:
                 horizontalalignment='left'
             )
 
-def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, happiness_scores, lens: float) -> list[float | None]:
+def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, dictionary, lens: float) -> list[float | None]:
     # create a list of lists of tokens per episode
     episodes = wordlist.groupby('Episode')
 
@@ -52,7 +52,7 @@ def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, happiness_sc
             episodes_scenes.append(scenes)
 
         print("scoring scenes")
-        scored_episode_scenes = [[score_scene(scene) for scene in episode] for episode in tqdm(episodes_scenes)]
+        scored_episode_scenes = [[score_segment(scene['Token'], dictionary, lens) for scene in episode] for episode in tqdm(episodes_scenes)]
 
         # convert scored episode scenes to a list of scores by duplicating the score for each token in the scene
         scores_by_scene = []
@@ -64,9 +64,9 @@ def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, happiness_sc
     else:
         raise ValueError(f"Invalid segmentation: {segmentation}")
 
-def score_scene(scene):
-    score = scoring.score_text(scene['Token'], happiness_scores, lens)
-    return [score, len(scene)]
+def score_segment(segment: list[str], dictionary, lens: float) -> tuple[int | None, int]:
+    score = scoring.score_text(segment, dictionary, lens)
+    return score, len(segment)
 
 def get_season_indices(wordlist):
     # find the row index of the first row for each season
