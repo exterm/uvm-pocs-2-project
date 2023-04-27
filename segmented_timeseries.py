@@ -87,14 +87,23 @@ def get_episode_indices(wordlist):
 def plot_timeseries(lens: float, axes: np.ndarray, i: int = 0) -> None:
     timeseries = segmented_timeseries(args.segmentation, wordlist_full, happiness_scores, lens)
 
-    expanded_segments = []
-    for score, length in timeseries:
-        expanded_segments += [score] * length
+    # implement alternative visualization for segmented timeseries
+    #   - segments are spaced out by their length in words
+    #   - each segment's score is represented by a dot of a size determined by the segment's length in words
+    #   - the dots are not connected
+    #   - Y axis is the same as in the current visualization
 
-    timeseries = pd.Series(expanded_segments)
+    cur_pos = 0
+    for segment_score, segment_length in timeseries:
+        if segment_score is not None:
+            weight: float = segment_length / max([length for _, length in timeseries])
+            axes[i].scatter(cur_pos + segment_length / 2, segment_score, s=10, color='black', alpha=weight)
+        cur_pos += segment_length
 
-    axes[i].plot(timeseries)
+    # axes[i].plot(timeseries)
     axes[i].set_title(f"lens: {lens}")
+
+    axes[i].set_ylim(0, 10)
 
     last_plot = i == len(LENSES) - 1
     set_axes(axes[i], last_plot)
