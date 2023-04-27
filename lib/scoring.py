@@ -3,7 +3,7 @@ from collections import Counter
 from tqdm import tqdm
 
 # the average score of a text is the sum of the score of each word times the relative frequency of that word
-def score_text(words, scores, lens=0):
+def score_text(words, scores, lens: float = 0):
     word_counts = Counter(words)
 
     # filter out words that are within [average - lens, average + lens] of the average
@@ -14,6 +14,8 @@ def score_text(words, scores, lens=0):
     # compute the average score of the text
     scorable_types = [word for word in word_counts if word in scores]
     scorable_tokens = [word for word in words if word in scores]
+    if len(scorable_tokens) == 0:
+        return None
     return sum([scores[word] * (word_counts[word] / len(scorable_tokens)) for word in scorable_types])
 
 def timeseries(window_size, words, scores):
