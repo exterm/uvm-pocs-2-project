@@ -34,7 +34,14 @@ def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, dictionary, 
     episodes = wordlist.groupby('Episode')
 
     if segmentation == 'episode':
-        return [] # TODO
+        scored_episodes = [score_segment(episode['Token'].to_list(), dictionary, lens) for _, episode in episodes]
+
+        segmented_scores = []
+        for score, length in scored_episodes:
+            segmented_scores += [score] * length
+
+        return segmented_scores
+
     elif segmentation == 'scene':
         print("splitting into scenes")
         episodes_scenes = []
@@ -55,12 +62,12 @@ def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, dictionary, 
         scored_episode_scenes = [[score_segment(scene['Token'], dictionary, lens) for scene in episode] for episode in tqdm(episodes_scenes)]
 
         # convert scored episode scenes to a list of scores by duplicating the score for each token in the scene
-        scores_by_scene = []
+        segmented_scores = []
         for episode in scored_episode_scenes:
             for score, length in episode:
-                scores_by_scene += [score] * length
+                segmented_scores += [score] * length
 
-        return scores_by_scene
+        return segmented_scores
     else:
         raise ValueError(f"Invalid segmentation: {segmentation}")
 
