@@ -51,14 +51,6 @@ def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, happiness_sc
 
             episodes_scenes.append(scenes)
 
-        # TODO
-        # - split into scenes
-        # - get episode and season markers in number of scenes
-
-        # OR
-
-        # - use episode and season markers by token, and space out scenes by number of tokens (may be better!)
-
         print("scoring scenes")
         scored_episode_scenes = [[score_scene(scene) for scene in episode] for episode in tqdm(episodes_scenes)]
 
