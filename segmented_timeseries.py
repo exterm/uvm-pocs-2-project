@@ -29,18 +29,12 @@ def mark_seasons(axes, season_indices, last = 0) -> None:
                 horizontalalignment='left'
             )
 
-def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, dictionary, lens: float) -> list[float | None]:
+def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, dictionary, lens: float) -> list[tuple[float | None, int]]:
     # create a list of lists of tokens per episode
     episodes = wordlist.groupby('Episode')
 
     if segmentation == 'episode':
-        scored_episodes = [score_segment(episode['Token'].to_list(), dictionary, lens) for _, episode in episodes]
-
-        segmented_scores = []
-        for score, length in scored_episodes:
-            segmented_scores += [score] * length
-
-        return segmented_scores
+        return [score_segment(episode['Token'].to_list(), dictionary, lens) for _, episode in episodes]
 
     elif segmentation == 'scene':
         print("splitting into scenes")
@@ -61,17 +55,16 @@ def segmented_timeseries(segmentation: str, wordlist: pd.DataFrame, dictionary, 
         print("scoring scenes")
         scored_episode_scenes = [[score_segment(scene['Token'], dictionary, lens) for scene in episode] for episode in tqdm(episodes_scenes)]
 
-        # convert scored episode scenes to a list of scores by duplicating the score for each token in the scene
-        segmented_scores = []
+        scored_scenes = []
         for episode in scored_episode_scenes:
-            for score, length in episode:
-                segmented_scores += [score] * length
+            scored_scenes += episode
 
-        return segmented_scores
+        return scored_scenes
+
     else:
         raise ValueError(f"Invalid segmentation: {segmentation}")
 
-def score_segment(segment: list[str], dictionary, lens: float) -> tuple[int | None, int]:
+def score_segment(segment: list[str], dictionary, lens: float) -> tuple[float | None, int]:
     score = scoring.score_text(segment, dictionary, lens)
     return score, len(segment)
 
@@ -93,6 +86,12 @@ def get_episode_indices(wordlist):
 
 def plot_timeseries(lens: float, axes: np.ndarray, i: int = 0) -> None:
     timeseries = segmented_timeseries(args.segmentation, wordlist_full, happiness_scores, lens)
+
+    expanded_segments = []
+    for score, length in timeseries:
+        expanded_segments += [score] * length
+
+    timeseries = pd.Series(expanded_segments)
 
     axes[i].plot(timeseries)
     axes[i].set_title(f"lens: {lens}")
