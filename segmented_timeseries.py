@@ -130,7 +130,7 @@ print("read wordlist")
 wordlist_full = pd.read_csv(args.wordlist)
 
 # truncate wordlist to a reasonable size
-wordlist_full = wordlist_full[:50000]
+# wordlist_full = wordlist_full[:50000]
 
 num_plots = len(LENSES) if args.lenses else 1
 
