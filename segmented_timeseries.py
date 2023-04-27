@@ -106,12 +106,11 @@ exclusive_lens_args = parser.add_mutually_exclusive_group()
 
 parser.add_argument('wordlist', type=str, help='Input CSV file')
 
-# optional argument: iterate over a range of lens values
 exclusive_lens_args.add_argument('--lenses', action='store_true', help='Iterate over a range of lens values')
-
 exclusive_lens_args.add_argument('--lens', type=float, default=None, help='Lens value to use')
 
-# segmentation. Valid values are 'episode' and 'scene'
+parser.add_argument('--smol', action='store_true', help='Truncate the wordlist for testing purposes')
+
 VALID_SEGMENTATIONS = ['episode', 'scene']
 parser.add_argument('--segmentation', type=str, default=VALID_SEGMENTATIONS[0], choices=VALID_SEGMENTATIONS, help='Segmentation to use')
 
@@ -129,8 +128,8 @@ happiness_scores = happiness_scores.to_dict()['Happiness']
 print("read wordlist")
 wordlist_full = pd.read_csv(args.wordlist)
 
-# truncate wordlist to a reasonable size
-# wordlist_full = wordlist_full[:50000]
+if args.smol:
+    wordlist_full = wordlist_full[:40000]
 
 num_plots = len(LENSES) if args.lenses else 1
 
