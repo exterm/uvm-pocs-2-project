@@ -67,13 +67,15 @@ parser.add_argument('--lenses', action='store_true', help='Iterate over a range 
 parser.add_argument('--window-size', type=int, default=None, help='Window size to use')
 parser.add_argument('--lens', type=float, default=None, help='Lens value to use')
 
+parser.add_argument('--smol', action='store_true', help='Truncate the wordlist for testing purposes')
+
 args = parser.parse_args()
 
 if args.lenses and (args.window_size is not None or args.lens is not None):
     print("Error: --lenses and --window-size or --lens are incompatible")
     exit(1)
 
-WINDOW_EXPONENTS = [1, 1.5, 2, 2.5, 3, 3.5]
+WINDOW_EXPONENTS = [1, 1.5, 2, 2.5, 3, 3.5, 4]
 LENSES = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
 # LENSES = [0, 0.5]
 PREFERRED_WINDOW_SIZE = 316
@@ -93,7 +95,8 @@ print("read wordlist")
 wordlist_full = pd.read_csv(args.wordlist)
 
 # truncate wordlist to a reasonable size
-# wordlist_full = wordlist_full[:100000]
+if args.smol:
+    wordlist_full = wordlist_full[:100000]
 
 # just the tokens
 wordlist = wordlist_full['Token'].to_list()
