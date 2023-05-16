@@ -22,7 +22,7 @@ def mark_seasons(axes, season_indices, last: bool = False) -> None:
     if last:
         for i, season_index in enumerate(season_indices):
             axes.text(
-                season_index + 5000,
+                season_index + 10,
                 axes.get_ylim()[0],
                 f"Season {i + 1}",
                 verticalalignment='bottom',
@@ -73,7 +73,7 @@ def get_season_indices(wordlist):
     seasons = wordlist['Season'].to_list()
 
     max_season = max(seasons)
-    return [seasons.index(season) for season in range(1, max_season + 1)]
+    return [seasons.index(season) for season in range(1, max_season + 1) if season in seasons]
 
 def get_episode_indices(wordlist):
     # find the row index of the first row for each episode

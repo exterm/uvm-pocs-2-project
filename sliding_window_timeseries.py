@@ -118,7 +118,8 @@ wordlist = wordlist_full['Token'].to_list()
 seasons = wordlist_full['Season'].to_list()
 
 max_season = max(seasons)
-season_indices = [seasons.index(season) for season in range(1, max_season + 1)]
+season_indices = [seasons.index(season) for season in range(1, max_season + 1) if season in seasons]
+
 
 if args.profile:
     cProfile.run('happiness.timeseries(window_size, wordlist, happiness_scores)', 'restats')
