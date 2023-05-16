@@ -23,13 +23,15 @@ parser.add_argument('wordlist', type=str, help='Input CSV file')
 parser.add_argument('lens', type=float, help='Lens value to use')
 parser.add_argument('num_buckets', type=int, help='Number of buckets to use')
 parser.add_argument('--output', '-o', type=str, help='Output file name')
+parser.add_argument('--score-type', type=str, default="Valence", help='Which score type to use')
 
 args = parser.parse_args()
 
-print("read happiness scores")
-happiness_scores = pd.read_csv('Hedonometer.csv', usecols=['Word', 'Happiness'])
-happiness_scores = happiness_scores.set_index('Word')
-happiness_scores = happiness_scores.to_dict()['Happiness']
+print("read scores dictionary, using", args.score_type, "scores")
+scores = pd.read_csv('ousiometry-data/ousiometry_data_augmented.tsv', usecols=['Word', args.score_type], sep='\t')
+
+scores = scores.set_index('Word')
+scores = scores.to_dict()[args.score_type]
 
 print("read wordlist")
 wordlist_full = pd.read_csv(args.wordlist)
@@ -49,7 +51,7 @@ for episode in tqdm(episodes):
     episode_timeseries = []
     for i in range(args.num_buckets):
         bucket = episode_wordlist[i * bucket_size:(i + 1) * bucket_size]
-        score = scoring.score_text(bucket, happiness_scores, args.lens)
+        score = scoring.score_text(bucket, scores, args.lens)
         if score is None or score == 0:
             print(f"episode {episode} bucket {i} is empty")
         episode_timeseries.append(score)
@@ -69,11 +71,9 @@ for i in range(args.num_buckets):
 plt.plot(mean_timeseries, color='red')
 
 plt.xlabel("Percentage of tokens elapsed")
-plt.ylabel("Score")
+plt.ylabel(args.score_type + " score")
 
 plt.xticks(np.arange(0, args.num_buckets + .01, args.num_buckets / 5), np.arange(0, 101, 20))
-
-plt.ylim(4, 7)
 
 plt.title(f"Averaged timeseries, lens {args.lens}, buckets: {args.num_buckets}")
 
