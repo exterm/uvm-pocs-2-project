@@ -34,6 +34,15 @@ def mark_seasons(axes, season_indices, last):
                 horizontalalignment='left'
             )
 
+def get_episode_indices(wordlist):
+    # find the row index of the first row for each episode
+    episodes: list[int] = wordlist['Episode'].to_list()
+
+    episode_pairs = zip(episodes, episodes[1:])
+
+    # find the row index of the first row for each episode
+    return [i for i, (a, b) in enumerate(episode_pairs) if a != b]
+
 def center_scored_timeseries(timeseries, window_size):
     shift = window_size // 2
     return [None] * shift + timeseries + [None] * shift
@@ -96,7 +105,11 @@ wordlist_full = pd.read_csv(args.wordlist)
 
 # truncate wordlist to a reasonable size
 if args.smol:
-    wordlist_full = wordlist_full[:100000]
+    episodes = 5
+    print(f"truncating wordlist to {episodes} episodes")
+    # note that the Episodes column values start at an arbitrary value and are not necessarily sequential
+    episode_indices = get_episode_indices(wordlist_full)
+    wordlist_full = wordlist_full.iloc[:episode_indices[episodes]]
 
 # just the tokens
 wordlist = wordlist_full['Token'].to_list()
